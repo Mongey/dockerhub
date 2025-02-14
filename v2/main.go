@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -321,8 +322,11 @@ func (c *Client) sendRequest(ctx context.Context, method string, url string, bod
 		// Update rate limit information from headers
 		c.updateRateLimitFromHeaders(res.Header)
 
+		// Log the response status
+		log.Printf("[DEBUG] Received response with status code: %d", res.StatusCode)
 		// Handle rate limiting
 		if res.StatusCode == http.StatusTooManyRequests {
+			log.Println("[WARN] Rate limited. Retrying...")
 			retryAfter := res.Header.Get("X-Retry-After")
 			if retryAfter != "" {
 				retryTime, err := strconv.ParseInt(retryAfter, 10, 64)
